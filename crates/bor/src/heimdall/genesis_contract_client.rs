@@ -9,7 +9,7 @@ use alloy_sol_types::{
 
 pub mod state_receiver;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Default)]
 pub struct GenesisContractClient {
     validator_contract: Address,
     state_receiver_contract: Address,

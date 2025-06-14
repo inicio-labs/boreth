@@ -12,7 +12,7 @@ use crate::heimdall::{
 const API_HEIMDALL_TIMEOUT: Duration = Duration::from_secs(5);
 const STATE_FETCH_LIMIT: u64 = 50;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HeimdallClient {
     base_url: Url,
     client: reqwest::blocking::Client,
