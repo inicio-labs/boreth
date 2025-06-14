@@ -1,69 +1,65 @@
 //! Ethereum Node types config.
 
-use alloy_eips::{eip7840::BlobParams, merge::EPOCH_SLOTS};
-use reth_chainspec::{ChainSpec, EthChainSpec, EthereumHardforks};
-use reth_consensus::{ConsensusError, FullConsensus};
-use reth_ethereum_consensus::EthBeaconConsensus;
-use reth_ethereum_engine_primitives::{
-    EthBuiltPayload, EthPayloadAttributes, EthPayloadBuilderAttributes,
-};
-use reth_ethereum_primitives::{EthPrimitives, PooledTransaction, TransactionSigned};
-use reth_evm::{ConfigureEvm, EvmFactory, EvmFactoryFor, NextBlockEnvAttributes};
-use reth_network::{EthNetworkPrimitives, NetworkHandle, PeersInfo};
-use reth_node_api::{AddOnsContext, FullNodeComponents, NodeAddOns, NodePrimitives, TxTy};
-use reth_node_builder::{
-    components::{
-        BasicPayloadServiceBuilder, ComponentsBuilder, ConsensusBuilder, ExecutorBuilder,
-        NetworkBuilder, PoolBuilder,
-    },
-    node::{FullNodeTypes, NodeTypes},
-    rpc::{
-        EngineValidatorAddOn, EngineValidatorBuilder, EthApiBuilder, EthApiCtx, RethRpcAddOns,
-        RpcAddOns, RpcHandle,
-    },
-    BuilderContext, DebugNode, Node, NodeAdapter, NodeComponentsBuilder, PayloadBuilderConfig,
-    PayloadTypes,
-};
+use bor::params::BorParams;
+use reth_chainspec::ChainSpec;
+
+use reth_ethereum_primitives::EthPrimitives;
+use reth_evm::{ConfigureEvm, NextBlockEnvAttributes};
+use reth_node_ethereum::engine::EthPayloadAttributes;
+
 use reth_node_ethereum::{
-    node::{
-        EthereumAddOns, EthereumConsensusBuilder, EthereumExecutorBuilder, EthereumNetworkBuilder,
-        EthereumPayloadBuilder, EthereumPoolBuilder,
-    },
+    node::{EthereumNetworkBuilder, EthereumPayloadBuilder},
     EthEngineTypes,
 };
-use reth_provider::{providers::ProviderFactoryBuilder, CanonStateSubscriptions, EthStorage};
-use reth_rpc::{eth::core::EthApiFor, ValidationApi};
-use reth_rpc_api::{eth::FullEthApiServer, servers::BlockSubmissionValidationApiServer};
-use reth_rpc_builder::config::RethRpcServerConfig;
-use reth_rpc_eth_types::{error::FromEvmError, EthApiError};
-use reth_rpc_server_types::RethRpcModule;
-use reth_tracing::tracing::{debug, info};
-use reth_transaction_pool::{
-    blobstore::{DiskFileBlobStore, DiskFileBlobStoreConfig},
-    EthTransactionPool, PoolTransaction, TransactionPool, TransactionValidationTaskExecutor,
+
+use reth_payload_primitives::PayloadTypes;
+use reth_provider::EthStorage;
+
+use reth::{
+    api::{FullNodeComponents, FullNodeTypes, NodeTypes},
+    builder::{
+        components::{
+            BasicPayloadServiceBuilder, ComponentsBuilder, ExecutorBuilder, NodeComponentsBuilder,
+        },
+        rpc::RpcAddOns,
+        DebugNode, Node, NodeAdapter,
+    },
+    payload::{EthBuiltPayload, EthPayloadBuilderAttributes},
 };
+
+use reth_node_ethereum::node::EthereumPoolBuilder;
+
 use reth_trie_db::MerklePatriciaTrie;
-use revm::context::TxEnv;
-use std::{default::Default, sync::Arc, time::SystemTime};
+use std::default::Default;
+use std::sync::Arc;
+
+use crate::consensus::consensus::BorConsensusBuilder;
+use crate::executor::BorExecutorBuilder;
+
+use reth::rpc::eth::EthApi;
 
 /// Type configuration for a regular Odyssey node.
-#[derive(Debug, Clone, Default)]
-pub struct BorNode {}
+#[derive(Debug, Clone)]
+pub struct BorNode {
+    bor_params: Arc<BorParams>,
+}
 
 impl BorNode {
     /// Creates a new instance of the Optimism node type.
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(bor_params: Arc<BorParams>) -> Self {
+        Self { bor_params }
     }
 
     /// Returns a [`ComponentsBuilder`] configured for a regular Ethereum node.
-    pub fn components<Node>() -> ComponentsBuilder<
+    pub fn components<Node>(
+        &self,
+    ) -> ComponentsBuilder<
         Node,
         EthereumPoolBuilder,
         BasicPayloadServiceBuilder<EthereumPayloadBuilder>,
         EthereumNetworkBuilder,
-        EthereumExecutorBuilder,
-        EthereumConsensusBuilder,
+        BorExecutorBuilder,
+        BorConsensusBuilder,
     >
     where
         Node: FullNodeTypes<Types: NodeTypes<ChainSpec = ChainSpec, Primitives = EthPrimitives>>,
@@ -72,14 +68,21 @@ impl BorNode {
             PayloadAttributes = EthPayloadAttributes,
             PayloadBuilderAttributes = EthPayloadBuilderAttributes,
         >,
+        BorExecutorBuilder: ExecutorBuilder<Node>,
+        <BorExecutorBuilder as ExecutorBuilder<Node>>::EVM:
+            ConfigureEvm<NextBlockEnvCtx = NextBlockEnvAttributes>,
     {
         ComponentsBuilder::default()
             .node_types::<Node>()
             .pool(EthereumPoolBuilder::default())
-            .executor(EthereumExecutorBuilder::default())
+            .executor(BorExecutorBuilder {
+                bor_params: self.bor_params.clone(),
+            })
             .payload(BasicPayloadServiceBuilder::default())
             .network(EthereumNetworkBuilder::default())
-            .consensus(EthereumConsensusBuilder::default())
+            .consensus(BorConsensusBuilder {
+                bor_params: self.bor_params.clone(),
+            })
     }
 }
 
@@ -101,14 +104,14 @@ where
         EthereumPoolBuilder,
         BasicPayloadServiceBuilder<EthereumPayloadBuilder>,
         EthereumNetworkBuilder,
-        EthereumExecutorBuilder,
-        EthereumConsensusBuilder,
+        BorExecutorBuilder,
+        BorConsensusBuilder,
     >;
 
     type AddOns = ();
 
     fn components_builder(&self) -> Self::ComponentsBuilder {
-        Self::components()
+        Self::components(self)
     }
 
     fn add_ons(&self) -> Self::AddOns {}
