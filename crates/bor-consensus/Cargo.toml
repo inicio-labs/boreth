@@ -9,3 +9,5 @@ alloy-rlp = { workspace = true }
 bor-primitives = { workspace = true }
 bor-chainspec = { workspace = true }
 thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
