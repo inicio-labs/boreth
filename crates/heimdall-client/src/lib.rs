@@ -1,5 +1,8 @@
 //! Heimdall client for interacting with the Heimdall layer.
 
+mod cache;
+pub use cache::SpanCache;
+
 use alloy_primitives::{Address, Bytes, B256};
 use bor_primitives::Span;
 use serde::{Deserialize, Serialize};
