@@ -10,3 +10,6 @@ pub mod params;
 
 mod chainspec;
 pub use chainspec::{BorChainSpec, bor_amoy_chainspec, bor_mainnet_chainspec};
+
+mod amoy;
+pub use amoy::bor_amoy_genesis;
