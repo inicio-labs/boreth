@@ -66,7 +66,7 @@ alloy-eips = "1.0"
 alloy-evm = "0.10"
 alloy-genesis = "1.0"
 alloy-network = "1.0"
-alloy-primitives = { version = "1.2", features = ["serde", "rlp"] }
+alloy-primitives = { version = "1.2", features = ["serde", "rlp", "k256"] }
 alloy-rlp = "0.3"
 alloy-rpc-types = "1.0"
 alloy-rpc-types-engine = "1.0"

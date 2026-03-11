@@ -10,3 +10,6 @@ pub use recents::Recents;
 
 pub mod snapshot;
 pub use snapshot::BorSnapshot;
+
+pub mod seal;
+pub use seal::{ecrecover_seal, SealError};

@@ -1062,6 +1062,7 @@ dependencies = [
  "alloy-rlp",
  "bor-chainspec",
  "bor-primitives",
+ "k256",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
@@ -2412,6 +2413,7 @@ dependencies = [
  "once_cell",
  "serdect",
  "sha2",
+ "signature",
 ]
 
 [[package]]
