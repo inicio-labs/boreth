@@ -3,6 +3,12 @@
 mod cache;
 pub use cache::SpanCache;
 
+pub mod http;
+pub use http::HttpHeimdallClient;
+
+pub mod mock;
+pub use mock::MockHeimdallClient;
+
 use alloy_primitives::{Address, Bytes, B256};
 use bor_primitives::Span;
 use serde::{Deserialize, Serialize};
