@@ -1110,6 +1110,8 @@ name = "bor-storage"
 version = "0.1.0"
 dependencies = [
  "alloy-primitives",
+ "alloy-rlp",
+ "bor-chainspec",
  "bor-primitives",
  "serde",
 ]

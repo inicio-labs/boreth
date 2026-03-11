@@ -5,5 +5,7 @@ edition.workspace = true
 
 [dependencies]
 alloy-primitives = { workspace = true }
+alloy-rlp = { workspace = true }
+bor-chainspec = { workspace = true }
 serde = { workspace = true }
 bor-primitives = { workspace = true }
