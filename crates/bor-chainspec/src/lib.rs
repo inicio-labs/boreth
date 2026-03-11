@@ -7,3 +7,6 @@ mod hardfork;
 pub use hardfork::BorHardfork;
 
 pub mod params;
+
+mod chainspec;
+pub use chainspec::{BorChainSpec, bor_amoy_chainspec, bor_mainnet_chainspec};
