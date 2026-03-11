@@ -1100,9 +1100,12 @@ name = "bor-rpc"
 version = "0.1.0"
 dependencies = [
  "alloy-primitives",
+ "bor-consensus",
  "bor-primitives",
+ "bor-storage",
  "serde",
  "serde_json",
+ "thiserror 1.0.69",
 ]
 
 [[package]]

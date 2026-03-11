@@ -1,6 +1,6 @@
 //! RPC response types for the `bor_*` namespace.
 
-use alloy_primitives::{Address, B256};
+use alloy_primitives::{Address, B256, U256};
 use serde::{Deserialize, Serialize};
 
 /// Response type for `bor_getSnapshot` and `bor_getSnapshotAtHash`.
@@ -33,4 +33,24 @@ pub struct ValidatorInfo {
 pub struct CurrentValidatorsResponse {
     /// The current set of validators.
     pub validators: Vec<ValidatorInfo>,
+}
+
+/// Response type for `bor_getTransactionReceiptsByBlock`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BorReceiptResponse {
+    /// Transaction hash.
+    pub tx_hash: B256,
+    /// Block number.
+    pub block_number: u64,
+    /// Block hash.
+    pub block_hash: B256,
+    /// Cumulative gas used.
+    pub cumulative_gas_used: U256,
+    /// Gas used by this transaction.
+    pub gas_used: U256,
+    /// Whether this is a Bor system transaction.
+    pub is_bor_tx: bool,
+    /// Status (1 = success, 0 = failure).
+    pub status: u64,
 }
