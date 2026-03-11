@@ -1,5 +1,8 @@
 //! Bor consensus engine implementation.
 
+pub mod difficulty;
+pub use difficulty::{calculate_difficulty, is_inturn};
+
 pub mod extra_data;
 pub use extra_data::ExtraData;
 
