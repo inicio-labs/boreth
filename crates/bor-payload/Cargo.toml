@@ -1,0 +1,6 @@
+[package]
+name = "bor-payload"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

@@ -1,23 +1,91 @@
-[package]
-name = "boreth"
+[workspace]
+resolver = "3"
+members = [
+    "bin/boreth",
+    "crates/bor-chainspec",
+    "crates/bor-consensus",
+    "crates/bor-evm",
+    "crates/bor-node",
+    "crates/bor-payload",
+    "crates/bor-primitives",
+    "crates/bor-rpc",
+    "crates/bor-storage",
+    "crates/heimdall-client",
+]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[workspace.dependencies]
+# Internal crates
+bor-chainspec = { path = "crates/bor-chainspec" }
+bor-consensus = { path = "crates/bor-consensus" }
+bor-evm = { path = "crates/bor-evm" }
+bor-node = { path = "crates/bor-node" }
+bor-payload = { path = "crates/bor-payload" }
+bor-primitives = { path = "crates/bor-primitives" }
+bor-rpc = { path = "crates/bor-rpc" }
+bor-storage = { path = "crates/bor-storage" }
+heimdall-client = { path = "crates/heimdall-client" }
+
+# Reth
+reth = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-cli = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-cli-commands = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-cli-util = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-db = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-engine-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-ethereum-forks = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-ethereum-payload-builder = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-ethereum-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-evm-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-network = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-network-api = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-network-p2p = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-node-core = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-node-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-payload-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-primitives-traits = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-provider = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-revm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-rpc-engine-api = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-rpc-eth-api = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-tracing = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-trie-common = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-trie-db = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+
+# Alloy
+alloy-consensus = "1.0"
+alloy-eips = "1.0"
+alloy-evm = "0.10"
+alloy-genesis = "1.0"
+alloy-network = "1.0"
+alloy-primitives = { version = "1.2", features = ["serde", "rlp"] }
+alloy-rlp = "0.3"
+alloy-rpc-types = "1.0"
+alloy-rpc-types-engine = "1.0"
+alloy-rpc-types-eth = "1.0"
+alloy-sol-types = "1.2"
+
+# Async
 tokio = { version = "1", features = ["full"] }
-reqwest = { version = "0.12", features = ["json"] }
+
+# Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+# HTTP
+reqwest = { version = "0.12", features = ["json"] }
+
+# Error handling
+eyre = "0.6"
 thiserror = "1.0"
+
+# Misc
+auto_impl = "1"
+derive_more = { version = "2", default-features = false, features = ["full"] }
 url = "2.5"
-
-[workspace]
-resolver = "3"
-members = [ "crates/bor",
-  "crates/node"
-]
-
-[workspace.dependencies]
-
-
-

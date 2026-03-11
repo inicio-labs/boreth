@@ -1,0 +1,6 @@
+[package]
+name = "bor-consensus"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
