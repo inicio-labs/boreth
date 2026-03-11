@@ -44,6 +44,7 @@ reth-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-evm-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-network = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-network-api = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-network-peers = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-network-p2p = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-node-core = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-node-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
@@ -59,6 +60,7 @@ reth-trie-common = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2
 reth-trie-db = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 
 # Alloy
+alloy-chains = "0.2"
 alloy-consensus = "1.0"
 alloy-eips = "1.0"
 alloy-evm = "0.10"
