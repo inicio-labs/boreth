@@ -16,3 +16,9 @@ pub use snapshot::BorSnapshot;
 
 pub mod seal;
 pub use seal::{ecrecover_seal, SealError};
+
+pub mod validation;
+pub use validation::{
+    HeaderValidationParams, ParentValidationParams, ValidationError,
+    validate_header, validate_header_against_parent,
+};
