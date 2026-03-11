@@ -129,10 +129,7 @@ mod tests {
         let data = call.call_data();
         // Starts with selector
         assert_eq!(&data[..4], &COMMIT_SPAN_SELECTOR);
-        // First param: uint256 = 42
-        let span_id_offset = 4;
-        // ABI encoded: offset to bytes (64), then uint256 span_id at offset 0
-        // Actually with abi_encode_params for (uint256, bytes): span_id, offset, length, data
+        // ABI encoded: span_id, offset, length, data
         assert!(data.len() > 4 + 32); // At least selector + one word
     }
 

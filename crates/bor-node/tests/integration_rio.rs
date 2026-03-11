@@ -22,7 +22,7 @@ fn test_rio_span_size_transition() {
 
 #[test]
 fn test_rio_boundary_blocks() {
-    let node = BorNode::new(BorNodeConfig::mainnet()).unwrap();
+    let _node = BorNode::new(BorNodeConfig::mainnet()).unwrap();
 
     // Simulate blocks around Rio boundary
     for block in (RIO_BLOCK - 8)..=(RIO_BLOCK + 8) {
@@ -36,7 +36,7 @@ fn test_rio_boundary_blocks() {
         if !is_span_start {
             validate_block_pre_execution(
                 block,
-                &vec![0u8; 97],
+                &[0u8; 97],
                 false,
                 false,
                 current_span_size,

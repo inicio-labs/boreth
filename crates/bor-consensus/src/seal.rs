@@ -52,7 +52,7 @@ mod tests {
         // Known test vector: sign a hash with a known private key
         // Using the secp256k1 identity: signing keccak256("test") with a known key
         use alloy_primitives::keccak256;
-        use k256::ecdsa::{SigningKey, signature::hazmat::PrehashSigner};
+        use k256::ecdsa::SigningKey;
 
         let msg_hash = keccak256(b"test message for seal verification");
 

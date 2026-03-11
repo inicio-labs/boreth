@@ -43,7 +43,7 @@ mod tests {
     fn test_legacy_key_computation() {
         let block_number: u64 = 12345;
         let key = bor_receipt_key_legacy(block_number);
-        let expected = alloy_primitives::keccak256(&block_number.to_be_bytes());
+        let expected = alloy_primitives::keccak256(block_number.to_be_bytes());
         assert_eq!(key, expected);
 
         // Different block numbers yield different keys
