@@ -1,27 +1,30 @@
-use bor_node::{BorNode, BorNodeConfig};
+//! Boreth — Polygon Bor execution client built on Reth.
 
-fn main() -> eyre::Result<()> {
-    let args: Vec<String> = std::env::args().collect();
+use bor_chainspec::BorChainSpecParser;
+use clap::Parser;
+use reth_ethereum_cli::interface::Cli;
+use reth_node_ethereum::EthereumNode;
+use reth_tracing::tracing::info;
 
-    let network = if args.iter().any(|a| a == "--amoy") {
-        "amoy"
-    } else {
-        "mainnet"
-    };
+fn main() {
+    reth_cli_util::sigsegv_handler::install();
 
-    let config = match network {
-        "amoy" => BorNodeConfig::amoy(),
-        _ => BorNodeConfig::mainnet(),
-    };
+    if std::env::var_os("RUST_BACKTRACE").is_none() {
+        unsafe { std::env::set_var("RUST_BACKTRACE", "1") };
+    }
 
-    println!("boreth v{}", env!("CARGO_PKG_VERSION"));
-    println!("Network: {:?}", config.network);
-    println!("Chain ID: {}", config.chain_id());
-    println!("Heimdall: {}", config.heimdall_url);
-    println!("Data dir: {}", config.data_dir);
+    if let Err(err) =
+        Cli::<BorChainSpecParser>::parse().run(async move |builder, _| {
+            info!(target: "boreth", "Launching Boreth node");
+            let handle = builder
+                .node(EthereumNode::default())
+                .launch_with_debug_capabilities()
+                .await?;
 
-    let node = BorNode::new(config)?;
-    println!("Node initialized (chain_id={})", node.chain_id());
-
-    Ok(())
+            handle.wait_for_node_exit().await
+        })
+    {
+        eprintln!("Error: {err:?}");
+        std::process::exit(1);
+    }
 }

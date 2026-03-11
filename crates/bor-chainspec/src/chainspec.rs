@@ -55,6 +55,11 @@ impl BorChainSpec {
         &self.inner
     }
 
+    /// Consumes self and returns the inner Ethereum [`ChainSpec`].
+    pub fn into_inner(self) -> ChainSpec {
+        self.inner
+    }
+
     /// Returns a reference to the Bor hardfork map.
     pub fn bor_hardforks(&self) -> &BTreeMap<BorHardfork, ForkCondition> {
         &self.bor_hardforks

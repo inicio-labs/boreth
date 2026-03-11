@@ -16,3 +16,8 @@ pub use amoy::bor_amoy_genesis;
 
 mod genesis;
 pub use genesis::bor_mainnet_genesis;
+
+pub mod bootnodes;
+
+pub mod cli;
+pub use cli::BorChainSpecParser;
