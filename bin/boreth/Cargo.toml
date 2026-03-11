@@ -1,0 +1,8 @@
+[package]
+name = "boreth"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "boreth"
+path = "src/main.rs"
