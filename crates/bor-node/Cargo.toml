@@ -4,3 +4,16 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+bor-chainspec = { workspace = true }
+bor-consensus = { workspace = true }
+bor-evm = { workspace = true }
+bor-payload = { workspace = true }
+bor-primitives = { workspace = true }
+bor-rpc = { workspace = true }
+bor-storage = { workspace = true }
+heimdall-client = { workspace = true }
+alloy-primitives = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+eyre = { workspace = true }
+url = { workspace = true }
