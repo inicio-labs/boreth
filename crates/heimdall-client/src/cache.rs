@@ -7,6 +7,7 @@ use std::collections::HashMap;
 ///
 /// Stores spans keyed by their ID and evicts the least-recently-used entry
 /// when the cache exceeds `max_size`.
+#[derive(Debug)]
 pub struct SpanCache {
     spans: HashMap<u64, Span>,
     max_size: usize,

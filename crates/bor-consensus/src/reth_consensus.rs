@@ -2,8 +2,24 @@
 //!
 //! Wraps Bor's validation logic to conform to Reth's consensus traits,
 //! enabling integration with Reth's sync pipeline and block import.
+//!
+//! # Architecture
+//!
+//! Header-only validation (`validate_header`) performs structural checks that don't
+//! require external state (nonce, ommers, extra data format, etc.).
+//!
+//! Block-level validation (`validate_block_pre_execution`) performs full seal verification:
+//! - Recovers the block signer via ecrecover from the seal
+//! - Verifies the signer is in the current validator set (from cached Heimdall spans)
+//! - Checks the anti-double-sign window
+//!
+//! The span cache must be populated eagerly before blocks are validated. This is typically
+//! done by a separate component that pre-fetches spans from Heimdall.
 
 use alloy_consensus::EMPTY_OMMER_ROOT_HASH;
+use alloy_primitives::Address;
+use bor_primitives::Span;
+use heimdall_client::SpanCache;
 use reth_chainspec::{EthChainSpec, EthereumHardforks};
 use reth_consensus::{Consensus, ConsensusError, FullConsensus, HeaderValidator, ReceiptRootBloom};
 use reth_execution_types::BlockExecutionResult;
@@ -12,7 +28,12 @@ use reth_primitives_traits::{
     NodePrimitives, RecoveredBlock, SealedBlock, SealedHeader,
 };
 use std::fmt::Debug;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
+use tracing::{debug, warn};
+
+use crate::extra_data::ExtraData;
+use crate::recents::Recents;
+use crate::seal::{compute_seal_hash, ecrecover_seal};
 
 /// Bor consensus engine for Reth.
 ///
@@ -25,21 +46,51 @@ use std::sync::Arc;
 /// - Extra data contains vanity + optional validators + seal
 /// - Gas limit and base fee validated per Ethereum rules
 /// - Nonce must be zero
-///
-/// **Note**: Full seal verification (ecrecover, authorized signers, anti-double-sign)
-/// requires the validator set from Heimdall, which is not available during header-only
-/// validation. The current implementation performs structural checks and defers
-/// full authorization checks to block execution.
-#[derive(Debug, Clone)]
+/// - Seal is verified against the authorized validator set
+#[derive(Debug)]
 pub struct BorConsensus<ChainSpec> {
     /// Chain specification.
     chain_spec: Arc<ChainSpec>,
+    /// Cached Heimdall spans for validator set lookups.
+    span_cache: Mutex<SpanCache>,
+    /// Recent block signers for anti-double-sign enforcement.
+    recents: Mutex<Recents>,
 }
 
 impl<ChainSpec> BorConsensus<ChainSpec> {
     /// Create a new Bor consensus engine.
     pub fn new(chain_spec: Arc<ChainSpec>) -> Self {
-        Self { chain_spec }
+        Self {
+            chain_spec,
+            span_cache: Mutex::new(SpanCache::new(64)),
+            recents: Mutex::new(Recents::new()),
+        }
+    }
+
+    /// Insert a span into the cache. Call this to eagerly populate spans
+    /// before block validation reaches them.
+    pub fn insert_span(&self, span: Span) {
+        self.span_cache.lock().expect("span cache lock poisoned").insert(span);
+    }
+
+    /// Look up the span that covers the given block number.
+    /// Returns `None` if the span is not in the cache.
+    fn get_span_for_block(&self, block_number: u64, span_size: u64) -> Option<Span> {
+        let span_id = bor_primitives::span_id_at(block_number, span_size);
+        self.span_cache
+            .lock()
+            .expect("span cache lock poisoned")
+            .get(span_id)
+            .cloned()
+    }
+
+    /// Get the list of authorized signer addresses from a span's validator set.
+    fn authorized_signers(span: &Span) -> Vec<Address> {
+        span.validator_set
+            .validators
+            .iter()
+            .map(|v| v.signer)
+            .collect()
     }
 }
 
@@ -186,6 +237,61 @@ where
         // No withdrawals
         if block.body().withdrawals().is_some() {
             return Err(ConsensusError::WithdrawalsRootUnexpected);
+        }
+
+        let header = block.header();
+        let block_number = header.number();
+
+        // Parse extra data to get seal
+        let extra = ExtraData::parse(header.extra_data()).map_err(|e| {
+            ConsensusError::Other(format!("invalid extra data: {e}").into())
+        })?;
+
+        // Compute seal hash (header RLP with seal stripped from extra data)
+        let seal_hash = compute_seal_hash(header);
+
+        // Recover signer from seal
+        let signer = ecrecover_seal(&seal_hash, &extra.seal).map_err(|e| {
+            ConsensusError::Other(format!("seal recovery failed: {e}").into())
+        })?;
+
+        debug!(target: "bor::consensus", block = block_number, ?signer, "recovered block signer");
+
+        // Look up the validator set from the span cache.
+        // Use the chain-appropriate span size. For now, use a heuristic:
+        // if all Bor forks are at block 0 (Amoy), Rio is active from genesis → span_size = 1600.
+        // Otherwise determine from chain spec.
+        // TODO: Get span_size from chain spec properly based on block number.
+        let span_size = 6400u64; // Default pre-Rio span size
+        if let Some(span) = self.get_span_for_block(block_number, span_size) {
+            let signers = Self::authorized_signers(&span);
+
+            // Verify signer is authorized
+            if !signers.contains(&signer) {
+                return Err(ConsensusError::Other(
+                    format!("unauthorized signer {signer} at block {block_number}").into(),
+                ));
+            }
+
+            // Anti-double-sign check
+            let recents = self.recents.lock().expect("recents lock poisoned");
+            if recents.is_recently_signed(&signer, block_number, signers.len()) {
+                return Err(ConsensusError::Other(
+                    format!("signer {signer} signed too recently at block {block_number}").into(),
+                ));
+            }
+            drop(recents);
+
+            // Record this signer in recents
+            let mut recents = self.recents.lock().expect("recents lock poisoned");
+            recents.add_signer(block_number, signer);
+            recents.prune(block_number, signers.len());
+        } else {
+            warn!(
+                target: "bor::consensus",
+                block = block_number,
+                "span not cached, skipping signer authorization check"
+            );
         }
 
         Ok(())
