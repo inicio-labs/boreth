@@ -12,7 +12,7 @@ use bor_storage::receipt_key::{bor_receipt_key, bor_receipt_key_legacy};
 /// Go's borReceiptKey computes keccak256 of the big-endian u64 block number.
 /// This mirrors that computation exactly.
 fn go_bor_receipt_key_legacy(block_number: u64) -> B256 {
-    keccak256(&block_number.to_be_bytes())
+    keccak256(block_number.to_be_bytes())
 }
 
 /// Go's new receipt key computes keccak256 of the block hash bytes.
@@ -61,10 +61,10 @@ fn test_hash_key_matches_go() {
         keccak256(b"polygon_bor_block_80084801"),
         keccak256(b"polygon_bor_block_99999999"),
         // Simulate typical block hashes
-        keccak256(&[1u8; 32]),
-        keccak256(&[2u8; 32]),
-        keccak256(&100u64.to_be_bytes()),
-        keccak256(&80_084_800u64.to_be_bytes()),
+        keccak256([1u8; 32]),
+        keccak256([2u8; 32]),
+        keccak256(100u64.to_be_bytes()),
+        keccak256(80_084_800u64.to_be_bytes()),
     ];
 
     for hash in &test_hashes {
@@ -82,17 +82,17 @@ fn test_hash_key_matches_go() {
 fn test_encoding_is_fixed_8_byte_big_endian() {
     // Block 0 should hash [0,0,0,0,0,0,0,0] (8 zero bytes)
     let key_0 = bor_receipt_key_legacy(0);
-    let expected = keccak256(&[0u8; 8]);
+    let expected = keccak256([0u8; 8]);
     assert_eq!(key_0, expected, "Block 0 key should hash 8 zero bytes");
 
     // Block 1 should hash [0,0,0,0,0,0,0,1]
     let key_1 = bor_receipt_key_legacy(1);
-    let expected = keccak256(&[0, 0, 0, 0, 0, 0, 0, 1u8]);
+    let expected = keccak256([0, 0, 0, 0, 0, 0, 0, 1u8]);
     assert_eq!(key_1, expected, "Block 1 key should hash [0,0,0,0,0,0,0,1]");
 
     // Block 256 should hash [0,0,0,0,0,0,1,0]
     let key_256 = bor_receipt_key_legacy(256);
-    let expected = keccak256(&[0, 0, 0, 0, 0, 0, 1, 0u8]);
+    let expected = keccak256([0, 0, 0, 0, 0, 0, 1, 0u8]);
     assert_eq!(key_256, expected, "Block 256 key encoding");
 }
 
@@ -100,7 +100,7 @@ fn test_encoding_is_fixed_8_byte_big_endian() {
 #[test]
 fn test_legacy_vs_hash_key_different() {
     let block_number = 80_084_800u64;
-    let block_hash = keccak256(&block_number.to_be_bytes());
+    let block_hash = keccak256(block_number.to_be_bytes());
 
     let legacy_key = bor_receipt_key_legacy(block_number);
     let hash_key = bor_receipt_key(&block_hash);

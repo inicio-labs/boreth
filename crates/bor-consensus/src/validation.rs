@@ -171,11 +171,7 @@ mod tests {
     use alloy_primitives::{keccak256, Address};
     use std::collections::BTreeMap;
 
-    fn make_signers(count: usize) -> Vec<Address> {
-        (0..count)
-            .map(|i| Address::new([(i + 1) as u8; 20]))
-            .collect()
-    }
+
 
     fn make_extra_data_with_seal(seal: &[u8; 65]) -> Vec<u8> {
         let mut data = vec![0u8; 32]; // vanity
@@ -254,7 +250,7 @@ mod tests {
     #[test]
     fn test_reject_wrong_difficulty() {
         // Use a real key to create a valid signature
-        use k256::ecdsa::{SigningKey, signature::hazmat::PrehashSigner};
+        use k256::ecdsa::SigningKey;
 
         let secret_bytes: [u8; 32] = keccak256(b"test_difficulty_key").0;
         let signing_key = SigningKey::from_bytes((&secret_bytes).into()).unwrap();
@@ -291,7 +287,7 @@ mod tests {
     #[test]
     fn test_validate_known_header() {
         // Create a valid header with known key
-        use k256::ecdsa::{SigningKey, signature::hazmat::PrehashSigner};
+        use k256::ecdsa::SigningKey;
 
         let secret_bytes: [u8; 32] = keccak256(b"known_validator_key").0;
         let signing_key = SigningKey::from_bytes((&secret_bytes).into()).unwrap();
@@ -367,7 +363,7 @@ mod tests {
 
     #[test]
     fn test_reject_unauthorized_signer() {
-        use k256::ecdsa::{SigningKey, signature::hazmat::PrehashSigner};
+        use k256::ecdsa::SigningKey;
 
         let secret_bytes: [u8; 32] = keccak256(b"unauthorized_key").0;
         let signing_key = SigningKey::from_bytes((&secret_bytes).into()).unwrap();

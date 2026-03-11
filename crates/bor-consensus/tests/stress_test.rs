@@ -58,7 +58,7 @@ fn test_concurrent_header_verification_no_panics() {
 
     for thread_id in 0..NUM_THREADS {
         let signers = Arc::clone(&signers);
-        let snapshot = Arc::clone(&snapshot);
+        let _snapshot = Arc::clone(&snapshot);
 
         let handle = thread::spawn(move || {
             let recents = BTreeMap::new();
@@ -77,7 +77,7 @@ fn test_concurrent_header_verification_no_panics() {
                     difficulty: U256::from(5),
                     extra_data: vec![0u8; 97],
                     gas_limit: 30_000_000,
-                    seal_hash: keccak256(&block_number.to_be_bytes()),
+                    seal_hash: keccak256(block_number.to_be_bytes()),
                     has_ommers: false,
                 };
 

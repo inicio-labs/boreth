@@ -22,7 +22,7 @@ fn test_delhi_sprint_size_transition() {
 
 #[test]
 fn test_delhi_boundary_blocks() {
-    let node = BorNode::new(BorNodeConfig::mainnet()).unwrap();
+    let _node = BorNode::new(BorNodeConfig::mainnet()).unwrap();
 
     // Simulate blocks around Delhi boundary
     for block in (DELHI_BLOCK - 16)..=(DELHI_BLOCK + 16) {
@@ -31,7 +31,7 @@ fn test_delhi_boundary_blocks() {
         // Pre-execution validation should pass for normal blocks
         validate_block_pre_execution(
             block,
-            &vec![0u8; 97],
+            &[0u8; 97],
             false,
             false,
             6400, // span_size doesn't change at Delhi

@@ -6,7 +6,7 @@
 
 use alloy_primitives::{B256, keccak256};
 use bor_chainspec::BorHardfork;
-use bor_consensus::block_validation::{validate_block_pre_execution, validate_block_post_execution};
+use bor_consensus::block_validation::validate_block_post_execution;
 use bor_storage::{is_post_madhugiri, store_block_receipts, compute_receipt_root};
 use bor_node::{BorNode, BorNodeConfig};
 
@@ -34,7 +34,7 @@ fn test_post_madhugiri_unified_receipt_storage() {
 
 #[test]
 fn test_madhugiri_boundary_blocks() {
-    let node = BorNode::new(BorNodeConfig::mainnet()).unwrap();
+    let _node = BorNode::new(BorNodeConfig::mainnet()).unwrap();
 
     // Pre-Madhugiri block: Bor receipt excluded from receipt root
     let regular_hashes = vec![B256::from([0x01; 32]), B256::from([0x02; 32])];
@@ -59,8 +59,8 @@ fn test_madhugiri_fork_active() {
 #[test]
 fn test_madhugiri_boundary_post_execution() {
     // Simulate post-execution at the exact boundary
-    let state_root = keccak256(&MADHUGIRI_BLOCK.to_be_bytes());
-    let receipt_root = keccak256(&(MADHUGIRI_BLOCK + 1).to_be_bytes());
+    let state_root = keccak256(MADHUGIRI_BLOCK.to_be_bytes());
+    let receipt_root = keccak256((MADHUGIRI_BLOCK + 1).to_be_bytes());
 
     // Both state root and receipt root must match
     validate_block_post_execution(

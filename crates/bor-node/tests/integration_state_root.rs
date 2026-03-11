@@ -44,7 +44,7 @@ fn test_1000_consecutive_blocks_post_lisovo() {
         if !is_span_start {
             validate_block_pre_execution(
                 block,
-                &vec![0u8; 97],
+                &[0u8; 97],
                 false,
                 false,
                 current_span_size,
@@ -106,8 +106,8 @@ fn test_1000_consecutive_blocks_post_lisovo() {
         assert!(is_post, "block {block} should be post-Madhugiri");
 
         // 6. Post-execution: simulate matching roots
-        let state_root = keccak256(&block.to_be_bytes());
-        let receipt_root = keccak256(&(block + 1).to_be_bytes());
+        let state_root = keccak256(block.to_be_bytes());
+        let receipt_root = keccak256((block + 1).to_be_bytes());
         validate_block_post_execution(
             &state_root,
             &state_root,

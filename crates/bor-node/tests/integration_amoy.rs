@@ -23,7 +23,7 @@ fn test_amoy_genesis_initialization() {
 #[test]
 fn test_amoy_first_100_blocks_simulated() {
     let config = BorNodeConfig::amoy();
-    let node = BorNode::new(config).unwrap();
+    let _node = BorNode::new(config).unwrap();
 
     let validators = vec![
         Address::new([0x01; 20]),
@@ -51,7 +51,7 @@ fn test_amoy_first_100_blocks_simulated() {
             difficulty,
             extra_data: vec![0u8; 97],
             gas_limit: 30_000_000,
-            seal_hash: keccak256(&block_number.to_be_bytes()),
+            seal_hash: keccak256(block_number.to_be_bytes()),
             has_ommers: false,
         };
         let parent = ParentValidationParams {
@@ -62,7 +62,7 @@ fn test_amoy_first_100_blocks_simulated() {
         // Pre-execution validation (no span start in first 100 blocks with span_size=6400)
         validate_block_pre_execution(
             block_number,
-            &vec![0u8; 97],
+            &[0u8; 97],
             false,
             false,
             6400,
@@ -76,8 +76,8 @@ fn test_amoy_first_100_blocks_simulated() {
         assert!(!plan.execute_commit_span);
 
         // Post-execution: verify matching roots
-        let state_root = keccak256(&block_number.to_be_bytes());
-        let receipt_root = keccak256(&(block_number + 1000).to_be_bytes());
+        let state_root = keccak256(block_number.to_be_bytes());
+        let receipt_root = keccak256((block_number + 1000).to_be_bytes());
         validate_block_post_execution(
             &state_root,
             &state_root,
