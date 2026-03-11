@@ -1141,6 +1141,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "bor-testdata"
+version = "0.1.0"
+dependencies = [
+ "alloy-primitives",
+ "bor-chainspec",
+ "bor-consensus",
+ "bor-evm",
+ "bor-primitives",
+ "bor-storage",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "boreth"
 version = "0.1.0"
 dependencies = [
