@@ -3,7 +3,7 @@
 //! Pre-execution validation checks body constraints, extra data at span starts, and seal.
 //! Post-execution validation verifies state root, receipt root, and gas used.
 
-use alloy_primitives::{Address, B256, U256};
+use alloy_primitives::{Address, B256};
 use crate::extra_data::ExtraData;
 use crate::validation::ValidationError;
 

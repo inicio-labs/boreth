@@ -15,7 +15,7 @@ pub fn bor_receipt_key(block_hash: &B256) -> B256 {
 
 /// Compute the legacy Bor receipt key from block number
 pub fn bor_receipt_key_legacy(block_number: u64) -> B256 {
-    alloy_primitives::keccak256(&block_number.to_be_bytes())
+    alloy_primitives::keccak256(block_number.to_be_bytes())
 }
 
 #[cfg(test)]

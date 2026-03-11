@@ -20,7 +20,7 @@ pub const BOR_TABLES: &[&str] = &[
 /// BorReceipts: B256 (receipt_key) -> Vec<u8> (RLP bytes)
 /// BorTxLookup: B256 (tx_hash) -> (u64, u64) (block_number, tx_index)
 /// BorMeta: u64 (meta_key) -> u64 (value)
-
+///
 /// Meta keys
 pub const META_LAST_SPAN_ID: u64 = 0;
 pub const META_LAST_SNAPSHOT_BLOCK: u64 = 1;

@@ -7,6 +7,7 @@ use bor_chainspec::BorHardfork;
 pub const P256_VERIFY_ADDRESS: Address = address!("0000000000000000000000000000000000000100");
 
 /// KZG point evaluation precompile address (never active on Bor).
+#[cfg(test)]
 const KZG_ADDRESS: Address = address!("000000000000000000000000000000000000000a");
 
 /// BorEvmConfig holds chain spec for fork-aware EVM configuration.

@@ -4,7 +4,7 @@
 //! sprint/span boundaries, and constructs the complete block payload.
 
 use alloy_primitives::{Address, Bytes, U256};
-use bor_evm::{SystemTxPlan, plan_system_txs, execute_system_tx_plan, SystemCallRecord};
+use bor_evm::{plan_system_txs, execute_system_tx_plan, SystemCallRecord};
 
 /// Configuration for building a payload.
 #[derive(Debug, Clone)]

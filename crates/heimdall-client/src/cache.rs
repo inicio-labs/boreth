@@ -41,8 +41,8 @@ impl SpanCache {
         let span_id = span.id;
 
         // If already present, update in place and promote.
-        if self.spans.contains_key(&span_id) {
-            self.spans.insert(span_id, span);
+        if let std::collections::hash_map::Entry::Occupied(mut e) = self.spans.entry(span_id) {
+            e.insert(span);
             self.touch(span_id);
             return;
         }
