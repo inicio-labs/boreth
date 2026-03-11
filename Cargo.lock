@@ -1085,6 +1085,12 @@ version = "0.1.0"
 [[package]]
 name = "bor-payload"
 version = "0.1.0"
+dependencies = [
+ "alloy-primitives",
+ "bor-chainspec",
+ "bor-evm",
+ "bor-primitives",
+]
 
 [[package]]
 name = "bor-primitives"
