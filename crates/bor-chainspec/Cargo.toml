@@ -5,12 +5,14 @@ edition.workspace = true
 
 [dependencies]
 reth-chainspec = { workspace = true }
+reth-cli = { workspace = true }
 reth-ethereum-forks = { workspace = true }
 reth-network-peers = { workspace = true }
 alloy-chains = { workspace = true }
 alloy-eips = { workspace = true }
 alloy-genesis = { workspace = true }
 alloy-primitives = { workspace = true }
+eyre = { workspace = true }
 
 [dev-dependencies]
 alloy-primitives = { workspace = true }
