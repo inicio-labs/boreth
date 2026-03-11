@@ -1,28 +1,35 @@
 //! Cross-verification of Bor receipt key encoding against Go implementation.
 //!
-//! The Go Bor implementation computes receipt keys as:
-//! - Legacy (pre-Madhugiri): keccak256(big-endian encoded block number as 8 bytes)
-//! - New (post-Madhugiri): keccak256(block_hash)
+//! The Go Bor implementation:
+//!   BorReceiptKey(number, hash) = "matic-bor-receipt-" + number_BE_u64 + hash_raw_32
+//!   GetDerivedBorTxHash(key) = keccak256(key)
 //!
 //! These tests verify our Rust implementation produces identical results.
 
 use alloy_primitives::{keccak256, B256};
-use bor_storage::receipt_key::{bor_receipt_key, bor_receipt_key_legacy};
+use bor_storage::receipt_key::{bor_receipt_key, derived_bor_tx_hash};
 
-/// Go's borReceiptKey computes keccak256 of the big-endian u64 block number.
-/// This mirrors that computation exactly.
-fn go_bor_receipt_key_legacy(block_number: u64) -> B256 {
-    keccak256(block_number.to_be_bytes())
+/// Prefix used by Go Bor for receipt keys.
+const BOR_RECEIPT_PREFIX: &[u8] = b"matic-bor-receipt-";
+
+/// Mirror of Go's BorReceiptKey: returns raw bytes (prefix + number_be_u64 + hash_raw_32)
+fn go_bor_receipt_key(block_number: u64, block_hash: &B256) -> Vec<u8> {
+    let mut data = Vec::new();
+    data.extend_from_slice(BOR_RECEIPT_PREFIX);
+    data.extend_from_slice(&block_number.to_be_bytes());
+    data.extend_from_slice(block_hash.as_slice());
+    data
 }
 
-/// Go's new receipt key computes keccak256 of the block hash bytes.
-fn go_bor_receipt_key(block_hash: &B256) -> B256 {
-    keccak256(block_hash.as_slice())
+/// Mirror of Go's GetDerivedBorTxHash: keccak256(BorReceiptKey)
+fn go_derived_bor_tx_hash(block_number: u64, block_hash: &B256) -> B256 {
+    let key = go_bor_receipt_key(block_number, block_hash);
+    keccak256(key)
 }
 
-/// Test 10 known mainnet blocks, verifying Rust legacy key matches Go algorithm.
+/// Test known mainnet blocks, verifying Rust DB key matches Go algorithm.
 #[test]
-fn test_legacy_key_10_mainnet_blocks() {
+fn test_receipt_key_matches_go_for_mainnet_blocks() {
     let blocks: [u64; 10] = [
         0,
         1,
@@ -37,84 +44,102 @@ fn test_legacy_key_10_mainnet_blocks() {
     ];
 
     for block_number in blocks {
-        let rust_key = bor_receipt_key_legacy(block_number);
-        let go_key = go_bor_receipt_key_legacy(block_number);
+        let block_hash = keccak256(block_number.to_be_bytes());
 
+        // DB key comparison
+        let rust_key = bor_receipt_key(block_number, &block_hash);
+        let go_key = go_bor_receipt_key(block_number, &block_hash);
         assert_eq!(
             rust_key, go_key,
-            "Legacy key mismatch at block {block_number}: rust={rust_key}, go={go_key}"
+            "DB key mismatch at block {block_number}"
         );
 
-        // Verify non-zero
-        assert_ne!(rust_key, B256::ZERO, "Key at block {block_number} should not be zero");
+        // Derived tx hash comparison
+        let rust_hash = derived_bor_tx_hash(block_number, &block_hash);
+        let go_hash = go_derived_bor_tx_hash(block_number, &block_hash);
+        assert_eq!(
+            rust_hash, go_hash,
+            "Derived tx hash mismatch at block {block_number}"
+        );
+
+        assert_ne!(rust_hash, B256::ZERO, "Tx hash at block {block_number} should not be zero");
     }
 }
 
-/// Verify hash-based key (post-Madhugiri) matches Go computation for various hashes.
-#[test]
-fn test_hash_key_matches_go() {
-    let test_hashes = [
-        B256::ZERO,
-        B256::from([0xff; 32]),
-        B256::from([0xab; 32]),
-        keccak256(b"polygon_bor_block_80084800"),
-        keccak256(b"polygon_bor_block_80084801"),
-        keccak256(b"polygon_bor_block_99999999"),
-        // Simulate typical block hashes
-        keccak256([1u8; 32]),
-        keccak256([2u8; 32]),
-        keccak256(100u64.to_be_bytes()),
-        keccak256(80_084_800u64.to_be_bytes()),
-    ];
-
-    for hash in &test_hashes {
-        let rust_key = bor_receipt_key(hash);
-        let go_key = go_bor_receipt_key(hash);
-        assert_eq!(
-            rust_key, go_key,
-            "Hash key mismatch for hash {hash}"
-        );
-    }
-}
-
-/// Verify the specific encoding: Go uses big-endian u64 bytes, not variable-length.
+/// Verify the specific encoding: Go uses big-endian u64 bytes.
 #[test]
 fn test_encoding_is_fixed_8_byte_big_endian() {
-    // Block 0 should hash [0,0,0,0,0,0,0,0] (8 zero bytes)
-    let key_0 = bor_receipt_key_legacy(0);
-    let expected = keccak256([0u8; 8]);
-    assert_eq!(key_0, expected, "Block 0 key should hash 8 zero bytes");
+    let hash = B256::ZERO;
 
-    // Block 1 should hash [0,0,0,0,0,0,0,1]
-    let key_1 = bor_receipt_key_legacy(1);
-    let expected = keccak256([0, 0, 0, 0, 0, 0, 0, 1u8]);
-    assert_eq!(key_1, expected, "Block 1 key should hash [0,0,0,0,0,0,0,1]");
+    // Block 0: number bytes = [0,0,0,0,0,0,0,0]
+    let key_0 = bor_receipt_key(0, &hash);
+    assert_eq!(key_0.len(), 18 + 8 + 32);
+    assert_eq!(&key_0[..18], BOR_RECEIPT_PREFIX);
+    assert_eq!(&key_0[18..26], &[0, 0, 0, 0, 0, 0, 0, 0]);
+    assert_eq!(&key_0[26..], hash.as_slice());
 
-    // Block 256 should hash [0,0,0,0,0,0,1,0]
-    let key_256 = bor_receipt_key_legacy(256);
-    let expected = keccak256([0, 0, 0, 0, 0, 0, 1, 0u8]);
-    assert_eq!(key_256, expected, "Block 256 key encoding");
+    // Block 1
+    let key_1 = bor_receipt_key(1, &hash);
+    assert_eq!(&key_1[18..26], &[0, 0, 0, 0, 0, 0, 0, 1]);
+
+    // Block 256
+    let key_256 = bor_receipt_key(256, &hash);
+    assert_eq!(&key_256[18..26], &[0, 0, 0, 0, 0, 0, 1, 0]);
+
+    // Block 2^32
+    let key_2_32 = bor_receipt_key(1u64 << 32, &hash);
+    assert_eq!(&key_2_32[18..26], &[0, 0, 0, 1, 0, 0, 0, 0]);
+
+    // Block 2^32-1
+    let key_2_32m1 = bor_receipt_key((1u64 << 32) - 1, &hash);
+    assert_eq!(&key_2_32m1[18..26], &[0, 0, 0, 0, 255, 255, 255, 255]);
+
+    // Block u64::MAX
+    let key_max = bor_receipt_key(u64::MAX, &hash);
+    assert_eq!(&key_max[18..26], &[255, 255, 255, 255, 255, 255, 255, 255]);
 }
 
-/// Legacy and hash keys should produce different results for related inputs.
+/// Verify that little-endian encoding would produce a DIFFERENT key.
 #[test]
-fn test_legacy_vs_hash_key_different() {
-    let block_number = 80_084_800u64;
-    let block_hash = keccak256(block_number.to_be_bytes());
+fn test_big_endian_vs_little_endian_differ() {
+    let block_number = 256u64;
+    let hash = B256::from([0xab; 32]);
 
-    let legacy_key = bor_receipt_key_legacy(block_number);
-    let hash_key = bor_receipt_key(&block_hash);
+    let be_key = bor_receipt_key(block_number, &hash);
 
-    // legacy = keccak256(block_number_bytes)
-    // hash = keccak256(keccak256(block_number_bytes))
-    assert_ne!(legacy_key, hash_key, "Legacy and hash keys must differ");
+    // Wrong: LE encoding
+    let mut le_data = Vec::new();
+    le_data.extend_from_slice(BOR_RECEIPT_PREFIX);
+    le_data.extend_from_slice(&block_number.to_le_bytes());
+    le_data.extend_from_slice(hash.as_slice());
+
+    assert_ne!(be_key, le_data, "BE and LE encodings must produce different keys");
 }
 
-/// All unique block numbers should produce unique keys.
+/// Verify block hash is raw 32 bytes, NOT hex-encoded.
+#[test]
+fn test_block_hash_is_raw_bytes_not_hex() {
+    let hash = B256::from([0xab; 32]);
+    let block_number = 100u64;
+
+    let correct_key = bor_receipt_key(block_number, &hash);
+
+    // Wrong: hex-encoded string
+    let hex_str = format!("{hash:x}");
+    let mut wrong_data = Vec::new();
+    wrong_data.extend_from_slice(BOR_RECEIPT_PREFIX);
+    wrong_data.extend_from_slice(&block_number.to_be_bytes());
+    wrong_data.extend_from_slice(hex_str.as_bytes());
+
+    assert_ne!(correct_key, wrong_data, "Raw bytes vs hex encoding must differ");
+}
+
+/// All unique block numbers should produce unique DB keys (same hash).
 #[test]
 fn test_no_key_collisions() {
+    let hash = B256::from([0xaa; 32]);
     let blocks: Vec<u64> = (0..100).collect();
-    let keys: Vec<B256> = blocks.iter().map(|&b| bor_receipt_key_legacy(b)).collect();
+    let keys: Vec<Vec<u8>> = blocks.iter().map(|&b| bor_receipt_key(b, &hash)).collect();
 
     for i in 0..keys.len() {
         for j in (i + 1)..keys.len() {
@@ -127,36 +152,96 @@ fn test_no_key_collisions() {
     }
 }
 
+/// Same block number with different hashes → different keys.
+#[test]
+fn test_different_hashes_different_keys() {
+    let block = 1_000_000u64;
+    let hash_a = B256::from([0x01; 32]);
+    let hash_b = B256::from([0x02; 32]);
+    assert_ne!(
+        bor_receipt_key(block, &hash_a),
+        bor_receipt_key(block, &hash_b),
+    );
+}
+
 /// Verify keys are deterministic.
 #[test]
 fn test_deterministic_keys() {
-    for block in [0u64, 1, 1000, 80_084_800, u64::MAX] {
-        let key1 = bor_receipt_key_legacy(block);
-        let key2 = bor_receipt_key_legacy(block);
-        assert_eq!(key1, key2, "Legacy key should be deterministic for block {block}");
-    }
-
     let hash = B256::from([0xab; 32]);
-    assert_eq!(bor_receipt_key(&hash), bor_receipt_key(&hash));
+    for block in [0u64, 1, 1000, 80_084_800, u64::MAX] {
+        let key1 = bor_receipt_key(block, &hash);
+        let key2 = bor_receipt_key(block, &hash);
+        assert_eq!(key1, key2, "Key should be deterministic for block {block}");
+    }
 }
 
-/// Verify keys at Bor mainnet hardfork boundaries are all distinct.
+/// Verify derived tx hashes at hardfork boundaries are all distinct.
 #[test]
-fn test_hardfork_boundary_keys() {
+fn test_hardfork_boundary_derived_hashes() {
     let delhi = 38_189_056u64;
     let rio = 77_414_656u64;
     let madhugiri = 80_084_800u64;
     let lisovo = 83_756_500u64;
 
-    let keys: Vec<B256> = [delhi, rio, madhugiri, lisovo]
+    let hash = B256::from([0xcc; 32]);
+    let tx_hashes: Vec<B256> = [delhi, rio, madhugiri, lisovo]
         .iter()
-        .map(|&b| bor_receipt_key_legacy(b))
+        .map(|&b| derived_bor_tx_hash(b, &hash))
         .collect();
 
-    // All distinct
-    for i in 0..keys.len() {
-        for j in (i + 1)..keys.len() {
-            assert_ne!(keys[i], keys[j]);
+    for i in 0..tx_hashes.len() {
+        for j in (i + 1)..tx_hashes.len() {
+            assert_ne!(tx_hashes[i], tx_hashes[j]);
         }
     }
+}
+
+/// Test edge cases: large block numbers.
+#[test]
+fn test_large_block_numbers() {
+    let hash = B256::from([0xdd; 32]);
+    let key_2_32 = bor_receipt_key(1u64 << 32, &hash);
+    let key_2_32_minus_1 = bor_receipt_key((1u64 << 32) - 1, &hash);
+    let key_max = bor_receipt_key(u64::MAX, &hash);
+
+    assert_ne!(key_2_32, key_2_32_minus_1);
+    assert_ne!(key_2_32, key_max);
+    assert_ne!(key_2_32_minus_1, key_max);
+
+    // Verify against Go computation
+    assert_eq!(key_2_32, go_bor_receipt_key(1u64 << 32, &hash));
+    assert_eq!(key_max, go_bor_receipt_key(u64::MAX, &hash));
+}
+
+/// Test that the key without prefix would be wrong.
+#[test]
+fn test_prefix_is_required() {
+    let block = 100u64;
+    let hash = B256::from([0xee; 32]);
+
+    let correct = bor_receipt_key(block, &hash);
+
+    // Without prefix
+    let mut no_prefix_data = Vec::new();
+    no_prefix_data.extend_from_slice(&block.to_be_bytes());
+    no_prefix_data.extend_from_slice(hash.as_slice());
+
+    assert_ne!(correct, no_prefix_data, "Missing prefix must produce different key");
+}
+
+/// Verify string encoding "80084800" produces DIFFERENT key than binary encoding.
+#[test]
+fn test_string_encoding_differs_from_binary() {
+    let block_number = 80_084_800u64;
+    let hash = B256::from([0xab; 32]);
+
+    let correct = bor_receipt_key(block_number, &hash);
+
+    // Wrong: using string representation of block number
+    let mut string_data = Vec::new();
+    string_data.extend_from_slice(BOR_RECEIPT_PREFIX);
+    string_data.extend_from_slice(format!("{block_number}").as_bytes());
+    string_data.extend_from_slice(hash.as_slice());
+
+    assert_ne!(correct, string_data, "String encoding must differ from binary");
 }

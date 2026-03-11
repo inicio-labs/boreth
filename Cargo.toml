@@ -11,6 +11,7 @@ members = [
     "crates/bor-rpc",
     "crates/bor-storage",
     "crates/heimdall-client",
+    "crates/bor-testdata",
 ]
 
 [workspace.package]
@@ -28,6 +29,7 @@ bor-primitives = { path = "crates/bor-primitives" }
 bor-rpc = { path = "crates/bor-rpc" }
 bor-storage = { path = "crates/bor-storage" }
 heimdall-client = { path = "crates/heimdall-client" }
+bor-testdata = { path = "crates/bor-testdata" }
 
 # Reth
 reth = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }

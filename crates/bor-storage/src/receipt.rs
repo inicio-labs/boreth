@@ -7,7 +7,7 @@
 //! unified with regular receipts and included in the receipt root.
 
 use alloy_primitives::B256;
-use crate::receipt_key::{bor_receipt_key, bor_receipt_key_legacy};
+use crate::receipt_key::bor_receipt_key;
 
 /// Madhugiri hardfork activation block on mainnet.
 const MADHUGIRI_BLOCK: u64 = 80_084_800;
@@ -48,24 +48,18 @@ pub fn store_block_receipts(
     block_number: u64,
     block_hash: &B256,
 ) -> BorReceiptStorage {
-    if is_post_madhugiri(block_number) {
-        BorReceiptStorage {
-            key: bor_receipt_key(block_hash),
-            separate: false,
-        }
-    } else {
-        BorReceiptStorage {
-            key: bor_receipt_key_legacy(block_number),
-            separate: true,
-        }
+    let key = bor_receipt_key(block_number, block_hash);
+    BorReceiptStorage {
+        key,
+        separate: !is_post_madhugiri(block_number),
     }
 }
 
 /// Describes how a Bor receipt should be stored.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BorReceiptStorage {
-    /// The storage key for the Bor receipt.
-    pub key: B256,
+    /// The raw database key for the Bor receipt.
+    pub key: Vec<u8>,
     /// If `true`, the receipt is stored separately (pre-Madhugiri).
     /// If `false`, it's included in the regular receipt trie (post-Madhugiri).
     pub separate: bool,
@@ -115,13 +109,14 @@ mod tests {
         assert!(is_post_madhugiri(80_084_800));
         assert!(!is_post_madhugiri(80_084_799));
 
-        let storage_pre = store_block_receipts(80_084_799, &B256::from([0xab; 32]));
-        let storage_post = store_block_receipts(80_084_800, &B256::from([0xab; 32]));
+        let block_hash = B256::from([0xab; 32]);
+        let storage_pre = store_block_receipts(80_084_799, &block_hash);
+        let storage_post = store_block_receipts(80_084_800, &block_hash);
 
         assert!(storage_pre.separate);
         assert!(!storage_post.separate);
 
-        // Keys should be different (legacy uses block number, new uses block hash)
+        // Keys should differ because block numbers differ
         assert_ne!(storage_pre.key, storage_post.key);
     }
 
@@ -133,22 +128,13 @@ mod tests {
     }
 
     #[test]
-    fn test_pre_madhugiri_uses_legacy_key() {
+    fn test_key_contains_prefix_and_data() {
         let block_number = 50_000_000u64;
         let block_hash = B256::from([0xab; 32]);
         let storage = store_block_receipts(block_number, &block_hash);
 
-        let expected_key = bor_receipt_key_legacy(block_number);
-        assert_eq!(storage.key, expected_key);
-    }
-
-    #[test]
-    fn test_post_madhugiri_uses_hash_key() {
-        let block_number = 81_000_000u64;
-        let block_hash = B256::from([0xab; 32]);
-        let storage = store_block_receipts(block_number, &block_hash);
-
-        let expected_key = bor_receipt_key(&block_hash);
-        assert_eq!(storage.key, expected_key);
+        // Key should be: "matic-bor-receipt-" + number_BE + hash_raw
+        assert_eq!(storage.key.len(), 18 + 8 + 32);
+        assert_eq!(&storage.key[..18], b"matic-bor-receipt-");
     }
 }
