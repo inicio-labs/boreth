@@ -1,0 +1,17 @@
+[package]
+name = "bor-testdata"
+version = "0.1.0"
+edition = "2024"
+description = "Golden test fixtures from real Polygon mainnet blocks for cross-crate testing"
+
+[dependencies]
+alloy-primitives = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+bor-chainspec = { workspace = true }
+bor-consensus = { workspace = true }
+bor-evm = { workspace = true }
+bor-storage = { workspace = true }
+bor-primitives = { workspace = true }

@@ -95,7 +95,7 @@ fn sprint_size_post_delhi() {
 #[test]
 fn is_sprint_start_pre_delhi() {
     // Pre-Delhi sprint size is 64
-    assert!(is_sprint_start(0));
+    assert!(!is_sprint_start(0)); // genesis is never a sprint start
     assert!(is_sprint_start(64));
     assert!(is_sprint_start(128));
     assert!(!is_sprint_start(1));
@@ -162,10 +162,10 @@ fn span_id_calculation_pre_rio() {
 
 #[test]
 fn is_span_start_various() {
-    assert!(is_span_start(0, 6400));
+    assert!(!is_span_start(0, 6400)); // genesis is never a span start
     assert!(is_span_start(6400, 6400));
     assert!(!is_span_start(6401, 6400));
-    assert!(is_span_start(0, 1600));
+    assert!(!is_span_start(0, 1600)); // genesis is never a span start
     assert!(is_span_start(1600, 1600));
     assert!(!is_span_start(1601, 1600));
 }
@@ -461,7 +461,7 @@ fn hardfork_parse_all_variants_lowercase() {
 
 #[test]
 fn is_sprint_start_at_block_zero() {
-    assert!(is_sprint_start(0));
+    assert!(!is_sprint_start(0)); // genesis is never a sprint start
 }
 
 #[test]
@@ -506,7 +506,7 @@ fn is_sprint_start_post_delhi_boundaries() {
 
 #[test]
 fn is_span_start_with_6400() {
-    assert!(is_span_start(0, 6400));
+    assert!(!is_span_start(0, 6400)); // genesis is never a span start
     assert!(is_span_start(6400, 6400));
     assert!(is_span_start(12800, 6400));
     assert!(!is_span_start(1, 6400));
@@ -515,7 +515,7 @@ fn is_span_start_with_6400() {
 
 #[test]
 fn is_span_start_with_1600() {
-    assert!(is_span_start(0, 1600));
+    assert!(!is_span_start(0, 1600)); // genesis is never a span start
     assert!(is_span_start(1600, 1600));
     assert!(is_span_start(3200, 1600));
     assert!(!is_span_start(1, 1600));

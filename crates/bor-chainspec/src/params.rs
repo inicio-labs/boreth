@@ -57,13 +57,23 @@ pub fn base_fee_change_denominator(block: u64) -> u64 {
 }
 
 /// Returns `true` if the given block is the first block of a sprint.
+///
+/// Block 0 (genesis) is never a sprint start.
 pub fn is_sprint_start(block: u64) -> bool {
+    if block == 0 {
+        return false;
+    }
     let size = sprint_size(block);
     block % size == 0
 }
 
 /// Returns `true` if the given block is the start of a new span.
+///
+/// Block 0 (genesis) is never a span start.
 pub fn is_span_start(block: u64, span_size: u64) -> bool {
+    if block == 0 {
+        return false;
+    }
     block % span_size == 0
 }
 
@@ -121,8 +131,10 @@ mod tests {
 
     #[test]
     fn test_is_sprint_start() {
+        // Block 0 (genesis) is never a sprint start
+        assert!(!is_sprint_start(0));
+
         // Pre-Delhi sprint size is 64
-        assert!(is_sprint_start(0));
         assert!(is_sprint_start(64));
         assert!(!is_sprint_start(65));
 
@@ -132,7 +144,9 @@ mod tests {
 
     #[test]
     fn test_is_span_start() {
-        assert!(is_span_start(0, 6400));
+        // Block 0 (genesis) is never a span start
+        assert!(!is_span_start(0, 6400));
+
         assert!(is_span_start(6400, 6400));
         assert!(!is_span_start(6401, 6400));
     }
