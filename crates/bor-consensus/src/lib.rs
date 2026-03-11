@@ -25,3 +25,6 @@ pub use validation::{
     HeaderValidationParams, ParentValidationParams, ValidationError,
     validate_header, validate_header_against_parent,
 };
+
+pub mod reth_consensus;
+pub use reth_consensus::BorConsensus;

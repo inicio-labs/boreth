@@ -33,6 +33,9 @@ heimdall-client = { path = "crates/heimdall-client" }
 reth = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-cli = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-consensus-common = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-execution-types = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-cli-commands = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-cli-runner = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-cli-util = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }

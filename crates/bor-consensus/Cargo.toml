@@ -4,13 +4,22 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+alloy-consensus = { workspace = true }
 alloy-primitives = { workspace = true }
 alloy-rlp = { workspace = true }
 bor-primitives = { workspace = true }
 bor-chainspec = { workspace = true }
+reth-chainspec = { workspace = true }
+reth-consensus = { workspace = true }
+reth-consensus-common = { workspace = true }
+reth-execution-types = { workspace = true }
+reth-ethereum-forks = { workspace = true }
+reth-primitives-traits = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
 [dev-dependencies]
+alloy-chains = { workspace = true }
+alloy-genesis = { workspace = true }
 k256 = { version = "0.13", features = ["ecdsa"] }
