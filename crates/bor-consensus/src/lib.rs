@@ -7,3 +7,6 @@ pub mod proposer;
 
 pub mod recents;
 pub use recents::Recents;
+
+pub mod snapshot;
+pub use snapshot::BorSnapshot;
