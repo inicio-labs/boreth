@@ -4,3 +4,5 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+bor-chainspec = { workspace = true }
+alloy-primitives = { workspace = true }
