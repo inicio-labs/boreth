@@ -1,7 +1,7 @@
 //! Bor consensus snapshot: tracks validator set and recent signers at a block.
 
 use alloy_primitives::{Address, B256};
-use bor_primitives::{Validator, ValidatorSet};
+use bor_primitives::ValidatorSet;
 use std::collections::BTreeMap;
 
 /// Snapshot of the Bor consensus state at a given block.
@@ -65,6 +65,7 @@ impl BorSnapshot {
 mod tests {
     use super::*;
     use alloy_primitives::address;
+    use bor_primitives::Validator;
 
     fn test_validator(id: u64, addr: &str) -> Validator {
         let a = addr.parse::<Address>().unwrap();

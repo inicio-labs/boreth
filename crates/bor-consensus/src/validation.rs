@@ -11,7 +11,7 @@
 //! - Signer must not have signed recently (anti-double-sign)
 
 use alloy_primitives::{Address, B256, U256};
-use crate::difficulty::{calculate_difficulty, is_inturn};
+use crate::difficulty::calculate_difficulty;
 use crate::extra_data::ExtraData;
 use crate::seal::ecrecover_seal;
 
@@ -131,7 +131,7 @@ pub fn validate_header(
     // 8. Anti-double-sign: signer must not have signed recently
     let limit = (authorized_signers.len() / 2 + 1) as u64;
     let cutoff = params.number.saturating_sub(limit);
-    for (&block, &recent_signer) in recent_signers.range(cutoff..params.number) {
+    for (&_block, &recent_signer) in recent_signers.range(cutoff..params.number) {
         if recent_signer == signer {
             return Err(ValidationError::RecentlySigned(signer));
         }

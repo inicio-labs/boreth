@@ -1,9 +1,9 @@
 //! BorNode: wires all components together.
 
-use alloy_primitives::{Address, B256};
+use alloy_primitives::B256;
 use bor_chainspec::BorChainSpec;
 use bor_consensus::BorSnapshot;
-use bor_storage::persistence::{InMemorySpanStore, InMemorySnapshotStore, SpanStore, SnapshotStore};
+use bor_storage::persistence::{InMemorySpanStore, InMemorySnapshotStore, SnapshotStore};
 use crate::config::{BorNodeConfig, BorNetwork};
 use std::sync::{Arc, RwLock};
 
@@ -67,6 +67,7 @@ impl BorNode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloy_primitives::Address;
     use bor_primitives::{Validator, ValidatorSet};
 
     fn test_validator_set() -> ValidatorSet {

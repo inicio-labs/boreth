@@ -6,7 +6,6 @@ use reth_chainspec::ChainSpecBuilder;
 use reth_ethereum_forks::{ChainHardforks, EthereumHardfork, ForkCondition};
 
 use crate::chainspec::{BorChainSpec, bor_mainnet_chainspec};
-use crate::BorHardfork;
 
 /// Berlin and London activated together on Polygon PoS mainnet.
 const BERLIN_BLOCK: u64 = 29_231_616;
@@ -40,6 +39,7 @@ pub fn bor_mainnet_genesis() -> BorChainSpec {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::BorHardfork;
     use reth_chainspec::EthChainSpec;
     use reth_ethereum_forks::Hardforks;
 
