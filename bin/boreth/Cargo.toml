@@ -6,3 +6,7 @@ edition.workspace = true
 [[bin]]
 name = "boreth"
 path = "src/main.rs"
+
+[dependencies]
+bor-node = { workspace = true }
+eyre = { workspace = true }

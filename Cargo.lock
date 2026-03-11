@@ -1081,6 +1081,21 @@ dependencies = [
 [[package]]
 name = "bor-node"
 version = "0.1.0"
+dependencies = [
+ "alloy-primitives",
+ "bor-chainspec",
+ "bor-consensus",
+ "bor-evm",
+ "bor-payload",
+ "bor-primitives",
+ "bor-rpc",
+ "bor-storage",
+ "eyre",
+ "heimdall-client",
+ "serde",
+ "serde_json",
+ "url",
+]
 
 [[package]]
 name = "bor-payload"
@@ -1128,6 +1143,10 @@ dependencies = [
 [[package]]
 name = "boreth"
 version = "0.1.0"
+dependencies = [
+ "bor-node",
+ "eyre",
+]
 
 [[package]]
 name = "borsh"
@@ -1698,6 +1717,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "eyre"
+version = "0.6.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7cd915d99f24784cdc19fd37ef22b97e3ff0ae756c7e492e9fbfe897d61e2aec"
+dependencies = [
+ "indenter",
+ "once_cell",
 ]
 
 [[package]]
@@ -2340,6 +2369,12 @@ dependencies = [
  "quote",
  "syn 2.0.117",
 ]
+
+[[package]]
+name = "indenter"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "964de6e86d545b246d84badc0fef527924ace5134f30641c203ef52ba83f58d5"
 
 [[package]]
 name = "indexmap"
