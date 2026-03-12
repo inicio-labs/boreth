@@ -41,6 +41,7 @@ reth-cli-runner = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2"
 reth-cli-util = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-db = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-engine-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-eth-wire = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-ethereum-cli = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-ethereum-forks = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-ethereum-payload-builder = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
@@ -51,6 +52,7 @@ reth-network = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-network-api = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-network-peers = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-network-p2p = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-node-api = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-node-builder = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-node-core = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-node-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
@@ -62,6 +64,7 @@ reth-revm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-rpc-engine-api = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-rpc-eth-api = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-tracing = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+reth-transaction-pool = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-trie-common = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 reth-trie-db = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
 
@@ -73,7 +76,7 @@ tracing = "0.1"
 alloy-chains = "0.2"
 alloy-consensus = "1.0"
 alloy-eips = "1.0"
-alloy-evm = "0.10"
+alloy-evm = { version = "0.27", default-features = false }
 alloy-genesis = "1.0"
 alloy-network = "1.0"
 alloy-primitives = { version = "1.2", features = ["serde", "rlp", "k256"] }
@@ -84,7 +87,10 @@ alloy-rpc-types-eth = "1.0"
 alloy-sol-types = "1.2"
 
 # Async
+bytes = "1"
+futures = "0.3"
 tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }

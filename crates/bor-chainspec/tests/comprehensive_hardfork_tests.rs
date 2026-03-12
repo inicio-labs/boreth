@@ -306,38 +306,50 @@ fn all_params_correct_at_each_boundary() {
 }
 
 // ---------------------------------------------------------------------------
-// 3.9 Amoy testnet: all forks active at block 0
+// 3.9 Amoy testnet: fork activation blocks match Go-Bor AmoyChainConfig
 // ---------------------------------------------------------------------------
 
 #[test]
-fn amoy_all_forks_at_block_zero() {
-    for fork in BorHardfork::all() {
-        assert_eq!(fork.amoy_block(), 0, "{fork} amoy_block should be 0");
-    }
+fn amoy_fork_activation_blocks() {
+    // First 4 forks activate at block 73_100, later forks at higher blocks
+    assert_eq!(BorHardfork::Delhi.amoy_block(), 73_100);
+    assert_eq!(BorHardfork::Indore.amoy_block(), 73_100);
+    assert_eq!(BorHardfork::Agra.amoy_block(), 73_100);
+    assert_eq!(BorHardfork::Napoli.amoy_block(), 73_100);
+    assert_eq!(BorHardfork::Ahmedabad.amoy_block(), 11_865_856);
+    assert_eq!(BorHardfork::Bhilai.amoy_block(), 22_765_056);
+    assert_eq!(BorHardfork::Rio.amoy_block(), 26_272_256);
+    assert_eq!(BorHardfork::Madhugiri.amoy_block(), 28_899_616);
+    assert_eq!(BorHardfork::Dandeli.amoy_block(), 31_890_000);
+    assert_eq!(BorHardfork::Lisovo.amoy_block(), 33_634_700);
 }
 
 #[test]
-fn amoy_spec_all_forks_active_at_genesis() {
+fn amoy_spec_early_forks_active_at_73100() {
     let spec = bor_amoy_genesis();
-    for fork in BorHardfork::all() {
+    // Delhi through Napoli activate at block 73_100
+    for fork in [BorHardfork::Delhi, BorHardfork::Indore, BorHardfork::Agra, BorHardfork::Napoli] {
         assert!(
-            spec.is_bor_fork_active_at_block(*fork, 0),
-            "{fork} should be active at Amoy genesis"
+            spec.is_bor_fork_active_at_block(fork, 73_100),
+            "{fork} should be active at block 73100"
+        );
+        assert!(
+            !spec.is_bor_fork_active_at_block(fork, 73_099),
+            "{fork} should NOT be active at block 73099"
         );
     }
 }
 
 #[test]
-fn amoy_latest_rules_from_genesis() {
-    // On Amoy, block 0 should have the latest parameter values.
-    // Since all forks are active at 0, the "latest" Delhi-era sprint size
-    // applies. However, param functions use mainnet block numbers, so we
-    // only verify via the chainspec fork activation here.
+fn amoy_all_forks_active_at_latest() {
+    // All forks should be active well past the last activation block
     let spec = bor_amoy_genesis();
-    assert!(spec.is_bor_fork_active_at_block(BorHardfork::Lisovo, 0));
-    assert!(spec.is_bor_fork_active_at_block(BorHardfork::Delhi, 0));
-    assert!(spec.is_bor_fork_active_at_block(BorHardfork::Bhilai, 0));
-    assert!(spec.is_bor_fork_active_at_block(BorHardfork::Rio, 0));
+    for fork in BorHardfork::all() {
+        assert!(
+            spec.is_bor_fork_active_at_block(*fork, 35_000_000),
+            "{fork} should be active at block 35_000_000"
+        );
+    }
 }
 
 // ---------------------------------------------------------------------------
