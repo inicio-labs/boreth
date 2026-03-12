@@ -65,25 +65,22 @@ impl BorChainSpec {
         &self.bor_hardforks
     }
 
-    /// Returns all unique, non-zero fork block numbers from both Ethereum and Bor hardforks,
-    /// sorted in ascending order. This is used for fork ID and fork filter computation.
-    fn all_fork_blocks(&self) -> Vec<u64> {
+    /// Returns all unique, non-zero fork block numbers from Ethereum hardforks only,
+    /// sorted in ascending order. Used for fork ID and fork filter computation.
+    ///
+    /// Bor-specific forks are intentionally excluded because Go-Bor's `NewID()` only
+    /// includes standard Ethereum forks in the EIP-2124 fork ID checksum. Including
+    /// Bor forks would produce a different fork hash than Go-Bor peers advertise.
+    fn eth_fork_blocks(&self) -> Vec<u64> {
         let mut blocks: Vec<u64> = Vec::new();
 
-        // Collect block-based forks from inner Ethereum hardforks
+        // Collect block-based forks from inner Ethereum hardforks only
         for (_, cond) in self.inner.forks_iter() {
             match cond {
                 ForkCondition::Block(block) | ForkCondition::TTD { fork_block: Some(block), .. } => {
                     blocks.push(block);
                 }
                 _ => {}
-            }
-        }
-
-        // Collect block-based forks from Bor hardforks
-        for (_, cond) in &self.bor_hardforks {
-            if let ForkCondition::Block(block) = cond {
-                blocks.push(*block);
             }
         }
 
@@ -99,7 +96,7 @@ impl BorChainSpec {
     fn compute_fork_id(&self, head: &Head) -> ForkId {
         let mut forkhash = ForkHash::from(self.inner.genesis_hash());
 
-        for block in self.all_fork_blocks() {
+        for block in self.eth_fork_blocks() {
             if head.number >= block {
                 forkhash += block;
             } else {
@@ -210,25 +207,14 @@ impl Hardforks for BorChainSpec {
     }
 
     fn latest_fork_id(&self) -> ForkId {
-        // Find the last Bor hardfork that is not `Never`
-        let last_bor = self.bor_hardforks.iter().rev().find(|(_, c)| !matches!(c, ForkCondition::Never));
-        let last_eth = self.inner.forks_iter().last();
-
-        // Pick the highest activation point across both sets
-        let head = match (last_bor, last_eth) {
-            (Some((_, ForkCondition::Block(bor_block))), Some((_, ForkCondition::Block(eth_block)))) => {
-                let block = (*bor_block).max(eth_block);
-                Head { number: block, ..Default::default() }
-            }
-            (Some((_, ForkCondition::Block(block))), _) => {
-                Head { number: *block, ..Default::default() }
-            }
-            _ => {
-                // Fall back to inner for timestamp-based or other scenarios
-                return self.inner.latest_fork_id()
-            }
-        };
-        self.compute_fork_id(&head)
+        // Since fork ID only includes Ethereum forks (not Bor forks),
+        // find the highest Ethereum fork block.
+        let eth_blocks = self.eth_fork_blocks();
+        if let Some(&last_block) = eth_blocks.last() {
+            self.compute_fork_id(&Head { number: last_block, ..Default::default() })
+        } else {
+            self.compute_fork_id(&Head::default())
+        }
     }
 
     fn fork_filter(&self, head: Head) -> ForkFilter {
@@ -236,7 +222,7 @@ impl Hardforks for BorChainSpec {
         let genesis_timestamp = self.inner.genesis().timestamp;
 
         // Collect all fork keys from both Ethereum and Bor hardforks
-        let forks = self.all_fork_blocks().into_iter().map(ForkFilterKey::Block);
+        let forks = self.eth_fork_blocks().into_iter().map(ForkFilterKey::Block);
 
         ForkFilter::new(head, genesis_hash, genesis_timestamp, forks)
     }
@@ -272,11 +258,27 @@ mod tests {
     use super::*;
     use reth_chainspec::ChainSpecBuilder;
 
+    use reth_ethereum_forks::{ChainHardforks, EthereumHardfork};
+
+    /// Build a test mainnet spec with London at block 29_231_616 (like real Polygon mainnet).
     fn mainnet_spec() -> BorChainSpec {
+        let hardforks = ChainHardforks::new(vec![
+            (Box::new(EthereumHardfork::Frontier) as Box<dyn reth_ethereum_forks::Hardfork>, ForkCondition::Block(0)),
+            (Box::new(EthereumHardfork::Homestead), ForkCondition::Block(0)),
+            (Box::new(EthereumHardfork::Tangerine), ForkCondition::Block(0)),
+            (Box::new(EthereumHardfork::SpuriousDragon), ForkCondition::Block(0)),
+            (Box::new(EthereumHardfork::Byzantium), ForkCondition::Block(0)),
+            (Box::new(EthereumHardfork::Constantinople), ForkCondition::Block(0)),
+            (Box::new(EthereumHardfork::Petersburg), ForkCondition::Block(0)),
+            (Box::new(EthereumHardfork::Istanbul), ForkCondition::Block(0)),
+            (Box::new(EthereumHardfork::MuirGlacier), ForkCondition::Block(0)),
+            (Box::new(EthereumHardfork::Berlin), ForkCondition::Block(29_231_616)),
+            (Box::new(EthereumHardfork::London), ForkCondition::Block(29_231_616)),
+        ]);
         let inner = ChainSpecBuilder::default()
             .chain(Chain::from_id(137))
             .genesis(Genesis::default())
-            .london_activated()
+            .with_forks(hardforks)
             .build();
         bor_mainnet_chainspec(inner)
     }
@@ -290,15 +292,8 @@ mod tests {
     #[test]
     fn test_chainspec_is_fork_active() {
         let spec = mainnet_spec();
-        // Delhi activates at block 38_189_056
-        assert!(
-            spec.is_bor_fork_active_at_block(BorHardfork::Delhi, 38_189_057),
-            "Delhi should be active at block 38_189_057"
-        );
-        assert!(
-            !spec.is_bor_fork_active_at_block(BorHardfork::Delhi, 38_189_055),
-            "Delhi should not be active at block 38_189_055"
-        );
+        assert!(spec.is_bor_fork_active_at_block(BorHardfork::Delhi, 38_189_057));
+        assert!(!spec.is_bor_fork_active_at_block(BorHardfork::Delhi, 38_189_055));
     }
 
     #[test]
@@ -308,10 +303,7 @@ mod tests {
         for (fork, condition) in &spec.bor_hardforks {
             if let ForkCondition::Block(block) = condition {
                 if let Some(prev) = prev_block {
-                    assert!(
-                        *block >= prev,
-                        "Hardfork {fork} at block {block} is before previous at block {prev}"
-                    );
+                    assert!(*block >= prev);
                 }
                 prev_block = Some(*block);
             }
@@ -319,71 +311,30 @@ mod tests {
     }
 
     #[test]
-    fn test_fork_id_includes_bor_hardforks() {
+    fn test_fork_id_excludes_bor_hardforks() {
         let spec = mainnet_spec();
 
-        // Fork ID at genesis should only include genesis hash (no forks activated at block 0)
+        // Fork ID at genesis: next should be London block (29_231_616)
         let id_at_0 = spec.fork_id(&Head { number: 0, ..Default::default() });
-        // The "next" should be the first non-zero fork block
-        assert_ne!(id_at_0.next, 0, "should have a next fork at genesis");
+        assert_eq!(id_at_0.next, 29_231_616, "next should be London block");
 
-        // Fork ID after all forks should have next=0
+        // Fork ID after all Ethereum forks should have next=0
         let id_all = spec.fork_id(&Head { number: 100_000_000, ..Default::default() });
-        assert_eq!(id_all.next, 0, "all forks should be active at block 100M");
+        assert_eq!(id_all.next, 0);
 
-        // Fork ID should change when a Bor hardfork activates
-        let id_before_delhi = spec.fork_id(&Head { number: 38_189_055, ..Default::default() });
-        let id_at_delhi = spec.fork_id(&Head { number: 38_189_056, ..Default::default() });
-        assert_ne!(
-            id_before_delhi.hash, id_at_delhi.hash,
-            "fork hash should change at Delhi activation"
-        );
-    }
-
-    #[test]
-    fn test_fork_id_differs_from_inner_only() {
-        let spec = mainnet_spec();
-        // After all Ethereum forks but before first Bor fork, BorChainSpec and inner
-        // should produce different fork IDs (inner doesn't know about Bor forks)
+        // Fork ID should match inner (Bor forks excluded)
         let head = Head { number: 38_189_056, ..Default::default() };
         let bor_id = spec.fork_id(&head);
         let inner_id = spec.inner.fork_id(&head);
-        // The hashes should differ because Bor adds Delhi at 38_189_056
-        assert_ne!(
-            bor_id.hash, inner_id.hash,
-            "BorChainSpec fork ID should differ from inner-only fork ID after Delhi"
-        );
+        assert_eq!(bor_id.hash, inner_id.hash);
     }
 
     #[test]
-    fn test_fork_filter_includes_bor_forks() {
+    fn test_fork_filter_at_genesis() {
         let spec = mainnet_spec();
         let head = Head { number: 0, ..Default::default() };
         let filter = spec.fork_filter(head);
-        // The filter should exist and be valid
         let id = filter.current();
-        assert_ne!(id.next, 0, "fork filter should have upcoming forks");
-    }
-
-    #[test]
-    fn test_amoy_fork_id_all_at_genesis() {
-        // Amoy has all Bor forks at block 0, so they shouldn't affect the fork hash
-        let inner = ChainSpecBuilder::default()
-            .chain(Chain::from_id(80002))
-            .genesis(Genesis::default())
-            .london_activated()
-            .paris_activated()
-            .build();
-        let spec = bor_amoy_chainspec(inner);
-
-        // All Bor forks at block 0 are filtered out, so fork ID should match
-        // what inner produces (since block-0 forks don't contribute to fork hash)
-        let head = Head { number: 100_000_000, ..Default::default() };
-        let bor_id = spec.fork_id(&head);
-        let inner_id = spec.inner.fork_id(&head);
-        assert_eq!(
-            bor_id.hash, inner_id.hash,
-            "Amoy: all-at-genesis Bor forks should not change fork hash"
-        );
+        assert_eq!(id.next, 29_231_616, "fork filter next should be London block");
     }
 }

@@ -5,6 +5,7 @@
 
 pub mod node;
 pub mod config;
+pub mod handshake;
 
 pub use node::BorNode;
 pub use config::BorNodeConfig;

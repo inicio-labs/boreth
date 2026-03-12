@@ -607,7 +607,7 @@ dependencies = [
  "alloy-rlp",
  "alloy-serde",
  "alloy-sol-types",
- "itertools 0.13.0",
+ "itertools 0.14.0",
  "serde",
  "serde_json",
  "serde_with",
@@ -801,7 +801,7 @@ checksum = "5ce599598ef8ebe067f3627509358d9faaa1ef94f77f834a7783cd44209ef55c"
 dependencies = [
  "alloy-json-rpc",
  "alloy-transport",
- "itertools 0.13.0",
+ "itertools 0.14.0",
  "reqwest",
  "serde_json",
  "tower",
@@ -1544,6 +1544,7 @@ dependencies = [
  "reth-cli",
  "reth-ethereum-forks",
  "reth-network-peers",
+ "serde_json",
 ]
 
 [[package]]
@@ -1557,6 +1558,7 @@ dependencies = [
  "alloy-rlp",
  "bor-chainspec",
  "bor-primitives",
+ "heimdall-client",
  "k256",
  "reth-chainspec",
  "reth-consensus",
@@ -1567,23 +1569,38 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 1.0.69",
+ "tracing",
 ]
 
 [[package]]
 name = "bor-evm"
 version = "0.1.0"
 dependencies = [
+ "alloy-consensus",
+ "alloy-eips",
  "alloy-primitives",
+ "alloy-rpc-types-engine",
  "alloy-sol-types",
  "bor-chainspec",
  "bor-primitives",
+ "heimdall-client",
+ "reth-chainspec",
+ "reth-ethereum-primitives",
+ "reth-evm",
+ "reth-evm-ethereum",
+ "reth-primitives-traits",
+ "reth-storage-errors",
+ "revm",
+ "tracing",
 ]
 
 [[package]]
 name = "bor-node"
 version = "0.1.0"
 dependencies = [
+ "alloy-chains",
  "alloy-primitives",
+ "alloy-rlp",
  "bor-chainspec",
  "bor-consensus",
  "bor-evm",
@@ -1591,10 +1608,18 @@ dependencies = [
  "bor-primitives",
  "bor-rpc",
  "bor-storage",
+ "bytes",
  "eyre",
+ "futures",
  "heimdall-client",
+ "reth-eth-wire",
+ "reth-ethereum-forks",
+ "reth-primitives-traits",
  "serde",
  "serde_json",
+ "tokio",
+ "tokio-stream",
+ "tracing",
  "url",
 ]
 
@@ -1647,6 +1672,7 @@ version = "0.1.0"
 dependencies = [
  "bor-chainspec",
  "bor-consensus",
+ "bor-evm",
  "bor-node",
  "clap",
  "eyre",
@@ -1655,9 +1681,13 @@ dependencies = [
  "reth-cli-util",
  "reth-ethereum-cli",
  "reth-ethereum-primitives",
+ "reth-evm",
+ "reth-network",
+ "reth-node-api",
  "reth-node-builder",
  "reth-node-ethereum",
  "reth-tracing",
+ "reth-transaction-pool",
 ]
 
 [[package]]
@@ -5734,7 +5764,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "27c6023962132f4b30eb4c172c91ce92d933da334c59c23cddee82358ddafb0b"
 dependencies = [
  "anyhow",
- "itertools 0.13.0",
+ "itertools 0.14.0",
  "proc-macro2",
  "quote",
  "syn 2.0.117",
@@ -5822,7 +5852,7 @@ dependencies = [
  "once_cell",
  "socket2 0.6.3",
  "tracing",
- "windows-sys 0.52.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -9106,7 +9136,7 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "webpki-root-certs 0.26.11",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

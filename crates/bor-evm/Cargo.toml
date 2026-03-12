@@ -4,7 +4,28 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+# Internal
 bor-chainspec = { workspace = true }
 bor-primitives = { workspace = true }
+heimdall-client = { workspace = true }
+
+# Alloy
+alloy-consensus = { workspace = true }
+alloy-eips = { workspace = true }
 alloy-primitives = { workspace = true }
+alloy-rpc-types-engine = { workspace = true }
 alloy-sol-types = { workspace = true }
+
+# Reth (re-exports alloy-evm types via reth-evm)
+reth-chainspec = { workspace = true }
+reth-ethereum-primitives = { workspace = true }
+reth-evm = { workspace = true }
+reth-evm-ethereum = { workspace = true }
+reth-primitives-traits = { workspace = true }
+reth-storage-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.2" }
+
+# Revm (same version as reth-evm)
+revm = { version = "34", default-features = false, features = ["std"] }
+
+# Misc
+tracing = { workspace = true }

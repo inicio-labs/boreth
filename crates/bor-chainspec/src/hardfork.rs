@@ -48,18 +48,19 @@ impl BorHardfork {
     }
 
     /// Returns the Amoy testnet (chain 80002) activation block number for this hardfork.
+    /// Values from Go-Bor's `AmoyChainConfig`.
     pub const fn amoy_block(&self) -> u64 {
         match self {
-            Self::Delhi => 0,
-            Self::Indore => 0,
-            Self::Agra => 0,
-            Self::Napoli => 0,
-            Self::Ahmedabad => 0,
-            Self::Bhilai => 0,
-            Self::Rio => 0,
-            Self::Madhugiri => 0,
-            Self::Dandeli => 0,
-            Self::Lisovo => 0,
+            Self::Delhi => 73_100,
+            Self::Indore => 73_100,
+            Self::Agra => 73_100,
+            Self::Napoli => 73_100,
+            Self::Ahmedabad => 11_865_856,
+            Self::Bhilai => 22_765_056,
+            Self::Rio => 26_272_256,
+            Self::Madhugiri => 28_899_616,
+            Self::Dandeli => 31_890_000,
+            Self::Lisovo => 33_634_700,
         }
     }
 
